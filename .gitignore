@@ -1,0 +1,34 @@
+# Private settings (only the blank example belongs in Git)
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+
+# OAuth, user data, generated credentials and local dependencies
+tokens/
+data/
+private/
+templates.json
+gameTemplates.json
+*.private.user.js
+node_modules/
+.venv*/
+venv/
+__pycache__/
+*.pyc
+
+# Local output, logs, backups and editor state
+artifacts/
+coverage/
+*.log
+*.tmp
+*.bak
+*.backup
+*.zip
+*.pem
+*.key
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

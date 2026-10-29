@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#101019">
+  <meta name="description" content="Локальная панель настройки Twitch-бота: подключение, команды, игры и музыка.">
+  <title>Twitch Bot — настройка</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к настройкам</a>
+  <aside class="sidebar" aria-label="Разделы настройки">
+    <a class="brand" href="#overview" aria-label="Twitch Bot — начало">
+      <span class="brand-mark" aria-hidden="true">tb<span>•</span></span>
+      <span>Twitch Bot<small>ПАНЕЛЬ НАСТРОЙКИ</small></span>
+    </a>
+    <div class="sidebar-caption">ВАШ БОТ, ВАШИ ПРАВИЛА</div>
+    <nav>
+      <a href="#connection"><span aria-hidden="true">01</span> Подключение</a>
+      <a href="#commands"><span aria-hidden="true">02</span> Команды</a>
+      <a href="#games"><span aria-hidden="true">03</span> Игры и доступ</a>
+      <a href="#automation"><span aria-hidden="true">04</span> Автоматизация</a>
+      <a href="#music"><span aria-hidden="true">05</span> Музыка</a>
+      <a href="#advanced"><span aria-hidden="true">06</span> Дополнительно</a>
+    </nav>
+    <div class="local-note"><span class="status-dot" aria-hidden="true"></span><div>Локальная панель<small>Настройки сохраняются в папке бота.</small></div></div>
+    <p class="sidebar-foot">После сохранения перезапустите бота, чтобы применить изменения.</p>
+  </aside>
+
+  <main id="main" tabindex="-1">
+    <header id="overview" class="page-header">
+      <div><p class="eyebrow">НАСТРОЙКА / TWITCH BOT</p><h1>Соберите своего бота<span>.</span></h1><p class="lead">Подключите канал, выберите команды и сохраните настройки. Всё в одном месте.</p></div>
+      <span id="file-state" class="badge">Загрузка…</span>
+    </header>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div id="loading" class="loading"><span class="loader" aria-hidden="true"></span> Загружаем настройки…</div>
+    <button id="retry" type="button" class="button secondary" hidden>Повторить загрузку</button>
+
+    <form id="settings-form" hidden autocomplete="off" novalidate>
+      <section class="profile-panel" aria-labelledby="profile-title">
+        <div class="section-heading"><div><span class="eyebrow">НАЧНИТЕ С ВАРИАНТА</span><h2 id="profile-title">Нужна музыка в чате?</h2></div><p>Выбор можно изменить в любой момент.</p></div>
+        <div class="profile-options">
+          <label class="profile-card"><input type="radio" name="music-profile" value="false" checked><span class="profile-icon" aria-hidden="true">✦</span><span class="profile-copy"><strong>Без !трек <span class="mini-tag">ПРОЩЕ НАЧАТЬ</span></strong><span>Команды, игры и модерация. Музыкальные токены и Python не нужны.</span></span><span class="radio-mark" aria-hidden="true"></span></label>
+          <label class="profile-card"><input type="radio" name="music-profile" value="true"><span class="profile-icon" aria-hidden="true">♫</span><span class="profile-copy"><strong>С !трек</strong><span>Добавьте текущий трек из Яндекс Музыки через браузерный мост или Python.</span></span><span class="radio-mark" aria-hidden="true"></span></label>
+        </div>
+      </section>
+
+      <section id="connection" class="panel" aria-labelledby="connection-title"><div class="section-heading"><div><span class="section-index">01 / ПОДКЛЮЧЕНИЕ</span><h2 id="connection-title">Аккаунт и каналы</h2></div></div><p class="section-description">Данные приложения Twitch и каналы, в которых будет работать бот. OAuth-авторизация выполняется отдельно после сохранения.</p><div id="fields-twitch" class="field-grid"></div></section>
+
+      <section id="commands" class="panel" aria-labelledby="commands-title">
+        <div class="section-heading"><div><span class="section-index">02 / КОМАНДЫ</span><h2 id="commands-title">Оставьте нужное</h2></div><span id="command-count" class="badge"></span></div>
+        <p class="section-description">Выключенная здесь команда не сработает в чате. Настройки для отдельного канала дополняют общие ограничения.</p>
+        <div class="command-toolbar"><label class="field compact"><span>Область настройки</span><select id="command-scope"><option value="">Все каналы</option></select></label><label class="field compact search-field"><span>Поиск команды</span><input id="command-search" type="search" placeholder="Например, !poll или дуэль" autocomplete="off"></label></div>
+        <div class="command-actions"><p id="command-hint" class="muted"></p><div><button id="enable-visible" type="button" class="text-button">Включить доступные</button><button id="disable-visible" type="button" class="text-button">Отключить видимые</button></div></div>
+        <div id="command-list" class="command-list"></div>
+        <p class="footnote">Отключение в панели имеет приоритет над командами !вкл и !откл. Ограничения из чата видны в настройках соответствующего канала. Изменения вступят в силу после перезапуска бота.</p>
+      </section>
+
+      <section id="games" class="panel" aria-labelledby="games-title"><div class="section-heading"><div><span class="section-index">03 / ИГРЫ И ДОСТУП</span><h2 id="games-title">Кто может играть и управлять</h2></div></div><div id="fields-games" class="field-grid"></div><div class="subsection"><h3>Администраторы отдельных каналов</h3><p class="section-description">По умолчанию используется общий список MODS. Отдельный список заменяет его. Пустой отдельный список оставляет доступ владельцу и модераторам канала, если доступ модераторов включён.</p><div id="channel-access" class="channel-list"></div></div></section>
+
+      <section id="automation" class="panel" aria-labelledby="automation-title"><div class="section-heading"><div><span class="section-index">04 / АВТОМАТИЗАЦИЯ</span><h2 id="automation-title">Меньше ручных действий</h2></div></div><h3>Автоматический закреп</h3><div id="fields-pin" class="field-grid"></div><div id="channel-pins" class="channel-list"></div><div class="subsection"><h3>Автоматический разбан</h3><div id="fields-unban" class="field-grid"></div></div></section>
+
+      <section id="music" class="panel" aria-labelledby="music-title"><div class="section-heading"><div><span class="section-index">05 / МУЗЫКА</span><h2 id="music-title">Что сейчас играет</h2></div><span id="music-state" class="badge">Отключено</span></div><div id="music-off" class="empty-state"><span aria-hidden="true">♫</span><div><strong>Выбран вариант без !трек</strong><p>Музыкальная интеграция не запускается. Чтобы настроить её, выберите «С !трек» в начале страницы.</p></div></div><div id="music-fields" hidden><p class="section-description">Можно использовать браузерный мост, Python-интеграцию или оба способа. Сохранённые значения останутся в файле при отключении музыки.</p><div id="fields-music" class="field-grid"></div></div></section>
+
+      <section id="advanced" class="panel" aria-labelledby="advanced-title"><div class="section-heading"><div><span class="section-index">06 / ДОПОЛНИТЕЛЬНО</span><h2 id="advanced-title">Точная настройка</h2></div></div><p class="section-description">Значения по умолчанию подходят для первого запуска.</p><div id="fields-advanced" class="field-grid"></div><div class="next-steps"><h3>После сохранения</h3><ol><li>В папке бота выполните <code>npm run authorize</code> и подтвердите аккаунты Twitch.</li><li>Назначьте аккаунт бота модератором в своих каналах.</li><li>Запустите бота командой <code>npm start</code>.</li></ol><p>На GitHub загружайте код и <code>.env.example</code>. Ваш <code>.env</code>, токены и игровые данные исключены через <code>.gitignore</code>.</p></div></section>
+
+      <footer class="save-bar"><div><strong id="save-heading">Настройки готовы к сохранению</strong><span id="save-detail">Сохраним .env в папке этой копии бота.</span></div><button id="save-button" type="submit" class="button primary"><span aria-hidden="true">↓</span> Сохранить .env</button></footer>
+    </form>
+    <p class="page-foot">Twitch Bot · Локальный конфигуратор</p>
+  </main>
+</body>
+</html>

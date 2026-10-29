@@ -1,0 +1,125 @@
+// ==UserScript==
+// @name         Twitch Bot — текущий трек Яндекс Музыки
+// @namespace    twitch-bot-track-bridge
+// @version      1.1.0
+// @description  Передаёт вашему Twitch-боту только исполнителя, название и состояние воспроизведения.
+// @match        https://music.yandex.ru/*
+// @match        https://music.yandex.com/*
+// @connect      __TRACK_BRIDGE_HOST__
+// @grant        GM_xmlhttpRequest
+// @grant        GM.xmlHttpRequest
+// @grant        unsafeWindow
+// @run-at       document-start
+// ==/UserScript==
+
+(() => {
+  'use strict';
+
+  const BRIDGE_URL = __TRACK_BRIDGE_URL_JSON__;
+  const BRIDGE_SECRET = __TRACK_BRIDGE_SECRET_JSON__;
+  const HEARTBEAT_MS = 5_000;
+  const pageWindow = typeof unsafeWindow === 'undefined' ? window : unsafeWindow;
+  let lastPayload = '';
+  let lastSentAt = 0;
+  let connectionConfirmed = false;
+
+  console.info('[Twitch Bot] userscript 1.1.0 запущен на', location.href);
+
+  function clean(value) {
+    return String(value ?? '').replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+  }
+
+  function readPlayer() {
+    const mediaSession = pageWindow.navigator?.mediaSession;
+    const metadata = mediaSession?.metadata;
+    const audioElements = [...document.querySelectorAll('audio')];
+    const playingAudio = audioElements.find((audio) => !audio.paused && !audio.ended);
+    const playing = mediaSession?.playbackState === 'playing' || Boolean(playingAudio);
+
+    return {
+      playing,
+      artist: clean(metadata?.artist),
+      title: clean(metadata?.title),
+    };
+  }
+
+  function responseReceived(response) {
+    if (response.status === 204) {
+      if (!connectionConfirmed) {
+        connectionConfirmed = true;
+        console.info('[Twitch Bot] связь с ботом установлена');
+      }
+      return;
+    }
+    console.error(`[Twitch Bot] мост ответил HTTP ${response.status}`);
+  }
+
+  function requestFailed(error) {
+    console.error('[Twitch Bot] не удалось передать текущий трек', error);
+  }
+
+  function post(payload) {
+    const details = {
+      method: 'POST',
+      url: BRIDGE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Track-Secret': BRIDGE_SECRET,
+      },
+      data: JSON.stringify(payload),
+      timeout: 4_000,
+    };
+
+    if (typeof GM_xmlhttpRequest === 'function') {
+      GM_xmlhttpRequest({
+        ...details,
+        onload: responseReceived,
+        onerror: requestFailed,
+        ontimeout: () => console.error('[Twitch Bot] мост не ответил за 4 секунды'),
+      });
+      return;
+    }
+
+    if (typeof GM !== 'undefined' && typeof GM.xmlHttpRequest === 'function') {
+      GM.xmlHttpRequest(details).then(responseReceived).catch(requestFailed);
+      return;
+    }
+
+    console.warn('[Twitch Bot] API Tampermonkey недоступен, пробую обычный fetch');
+    fetch(BRIDGE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Track-Secret': BRIDGE_SECRET,
+      },
+      body: details.data,
+    })
+      .then(responseReceived)
+      .catch(requestFailed);
+  }
+
+  function publish() {
+    const payload = readPlayer();
+    const serialized = JSON.stringify(payload);
+    const now = Date.now();
+    if (serialized === lastPayload && now - lastSentAt < HEARTBEAT_MS) return;
+
+    if (serialized !== lastPayload) {
+      console.info(
+        payload.playing
+          ? `[Twitch Bot] плеер: ${payload.artist || 'Неизвестный исполнитель'} - ${payload.title || 'без названия'}`
+          : '[Twitch Bot] плеер на паузе или остановлен',
+      );
+    }
+
+    lastPayload = serialized;
+    lastSentAt = now;
+    post(payload);
+  }
+
+  setInterval(publish, 1_000);
+  window.addEventListener('pageshow', publish);
+  document.addEventListener('play', publish, true);
+  document.addEventListener('pause', publish, true);
+  setTimeout(publish, 500);
+})();

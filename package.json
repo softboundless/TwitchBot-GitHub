@@ -1,0 +1,17 @@
+{
+  "name": "twitch-bot-configurable",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Настраиваемый Twitch-бот с локальной панелью, играми, опросами и переключателями команд",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "setup": "node setup/server.js",
+    "start": "node --env-file=.env src/index.js",
+    "authorize": "node --env-file=.env scripts/authorize.js",
+    "render:track-userscript": "node --env-file=.env scripts/renderTrackUserscript.js",
+    "check:tarot": "node --env-file=.env scripts/checkTarot.js",
+    "test": "node --test",
+    "check:public": "node scripts/checkPublic.js"
+  }
+}
